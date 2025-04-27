@@ -47,8 +47,13 @@ def query_powerbi():
 
     access_token = get_access_token()
 
-    # Simple hardcoded DAX query for now
-    dax_query = "EVALUATE SUMMARIZECOLUMNS('Sales'[Region], 'Sales'[Amount])"
+    dax_query = """
+    EVALUATE
+    SUMMARIZECOLUMNS(
+        'Master Items Sales Analysis by'[CUSTOMER_NAME],
+        "Revenue", [Revenue]
+    )
+    """
 
     results = run_dax_query(dax_query, access_token)
 
