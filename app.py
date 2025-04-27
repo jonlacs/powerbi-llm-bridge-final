@@ -30,14 +30,8 @@ def run_dax_query(dax_query, access_token):
         "Content-Type": "application/json"
     }
     body = {
-        "queries": [
-            {
-                "query": dax_query
-            }
-        ],
-        "serializerSettings": {
-            "includeNulls": True
-        }
+        "queries": [{"query": dax_query}],
+        "serializerSettings": {"includeNulls": True}
     }
     response = requests.post(url, headers=headers, json=body)
     response.raise_for_status()
@@ -45,19 +39,10 @@ def run_dax_query(dax_query, access_token):
 
 @app.route('/query', methods=['POST'])
 def query_powerbi():
+    request_data = request.get_json()
+    dax_query = request_data.get('query')
     access_token = get_access_token()
-
-    # 🔥 Hardcoded DAX query:
-    dax_query = """
-    EVALUATE
-    SUMMARIZECOLUMNS(
-        'Master Items Sales Analysis by'[CUSTOMER_NAME],
-        "Total Revenue", SUM('Master Items Sales Analysis by'[LINE_TOTAL])
-    )
-    """
-
     results = run_dax_query(dax_query, access_token)
-
     return jsonify(results)
 
 if __name__ == '__main__':
