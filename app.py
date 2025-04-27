@@ -1,14 +1,14 @@
 from flask import Flask, request, jsonify
 import requests
+import os
 
 app = Flask(__name__)
-
-import os
 
 TENANT_ID = os.environ.get("TENANT_ID")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-
+WORKSPACE_ID = os.environ.get("WORKSPACE_ID")
+DATASET_ID = os.environ.get("DATASET_ID")
 
 def get_access_token():
     url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
@@ -22,14 +22,37 @@ def get_access_token():
     response = requests.post(url, headers=headers, data=body)
     return response.json()["access_token"]
 
+def run_dax_query(dax_query, access_token):
+    url = f"https://api.powerbi.com/v1.0/myorg/groups/{WORKSPACE_ID}/datasets/{DATASET_ID}/executeQueries"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "queries": [
+            {
+                "query": dax_query
+            }
+        ],
+        "serializerSettings": {
+            "includeNulls": True
+        }
+    }
+    response = requests.post(url, headers=headers, json=body)
+    return response.json()
+
 @app.route('/query', methods=['POST'])
 def query_powerbi():
     user_query = request.json.get('query')
 
     access_token = get_access_token()
 
-    # **Later**, here is where you would actually query Power BI with DAX
-    return jsonify({"result": f"You asked: {user_query}. Real data fetching coming soon!"})
+    # Simple hardcoded DAX query for now
+    dax_query = "EVALUATE SUMMARIZECOLUMNS('Sales'[Region], 'Sales'[Amount])"
+
+    results = run_dax_query(dax_query, access_token)
+
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
