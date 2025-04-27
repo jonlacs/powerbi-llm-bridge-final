@@ -40,8 +40,11 @@ def run_dax_query(dax_query, access_token):
     }
     response = requests.post(url, headers=headers, json=body)
 
-    # Log what Power BI returns even if empty
+    print("Status Code:", response.status_code)
     print("Power BI response text:", response.text)
+
+    if response.status_code != 200:
+        return {"error": f"Power BI API error. Status: {response.status_code}, Body: {response.text}"}
 
     return response.json()
 
