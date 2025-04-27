@@ -4,6 +4,7 @@ import os
 
 app = Flask(__name__)
 
+# Load credentials and IDs from environment variables
 TENANT_ID = os.environ.get("TENANT_ID")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
@@ -39,11 +40,23 @@ def run_dax_query(dax_query, access_token):
 
 @app.route('/query', methods=['POST'])
 def query_powerbi():
-    request_data = request.get_json()
-    dax_query = request_data.get('query')
-    access_token = get_access_token()
-    results = run_dax_query(dax_query, access_token)
-    return jsonify(results)
+    try:
+        request_data = request.get_json()
+        dax_query = request_data.get('query')
+
+        if not dax_query:
+            return jsonify({"error": "No DAX query provided."}), 400
+
+        access_token = get_access_token()
+        results = run_dax_query(dax_query, access_token)
+
+        return jsonify({"result": results})
+
+    except requests.exceptions.HTTPError as http_err:
+        return jsonify({"error": "Bad DAX query or Power BI API error.", "details": str(http_err)}), 400
+
+    except Exception as err:
+        return jsonify({"error": "Unexpected server error.", "details": str(err)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
