@@ -49,10 +49,7 @@ def query_powerbi():
 
     dax_query = """
     EVALUATE
-    SUMMARIZECOLUMNS(
-        'Master Items Sales Analysis by'[CUSTOMER_NAME],
-        "Revenue", [Revenue]
-    )
+    'Master Items Sales Analysis by'
     """
 
     results = run_dax_query(dax_query, access_token)
