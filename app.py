@@ -39,6 +39,10 @@ def run_dax_query(dax_query, access_token):
         }
     }
     response = requests.post(url, headers=headers, json=body)
+
+    # Log what Power BI returns even if empty
+    print("Power BI response text:", response.text)
+
     return response.json()
 
 @app.route('/query', methods=['POST'])
@@ -49,7 +53,11 @@ def query_powerbi():
 
     dax_query = """
     EVALUATE
-    'Master Items Sales Analysis by'
+    SELECTCOLUMNS(
+        'Master Items Sales Analysis by',
+        "Customer", 'Master Items Sales Analysis by'[CUSTOMER_NUMBER],
+        "Invoice", 'Master Items Sales Analysis by'[INVOICE_NUMBER]
+    )
     """
 
     results = run_dax_query(dax_query, access_token)
